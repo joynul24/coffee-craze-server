@@ -3,8 +3,16 @@ const express = require("express");
 const cors = require("cors");
 const { MongoClient, ServerApiVersion } = require('mongodb');
 
+
 const app = express();
 const port = 3000;
+
+// app.use(cors({
+//   origin: "http://localhost:5173/",
+//   methods: ["GET", "POST", "PUT", "DELETE"],
+//   allowedHeaders: ["Content-Type"]
+// }));
+
 
 // Middleware
 app.use(cors());
@@ -30,7 +38,6 @@ async function run() {
 
     app.post("/coffees", async (req, res) => {
       const newCoffee = req.body;
-      console.log(newCoffee);
       try {
         const result = await coffeeCollection.insertOne(newCoffee);
         res.send(result);
@@ -39,6 +46,18 @@ async function run() {
         res.status(500).send({ message: "Failed to add coffee" });
       }
     });
+
+
+    app.get("/coffees", async (req, res) => {
+      try {
+        const coffees = await coffeeCollection.find().toArray();
+        res.send(coffees)
+      }
+      catch (error){
+        res.status(500).send({ message: "Failed to fetch coffees" });
+      }
+    })
+
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
