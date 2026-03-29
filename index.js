@@ -41,6 +41,19 @@ async function run() {
 
 
 
+    app.get("/coffees/:id", async (req, res) => {
+      const id = req.params.id;
+      try {
+        const result = await coffeeCollection.findOne({ _id: new ObjectId(id) });
+        res.send(result);
+      } catch (error) {
+        console.error(error);
+        res.status(500).send({ error: "Failed to fetch coffee details" });
+      }
+    });
+
+
+
     // POST route
     app.post("/coffees", async (req, res) => {
       const newCoffee = req.body;
