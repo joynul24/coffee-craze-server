@@ -2,26 +2,22 @@ require('dotenv').config();
 const express = require("express");
 const cors = require("cors");
 const { MongoClient, ServerApiVersion } = require('mongodb');
-
+const { ObjectId } = require("mongodb");
 
 const app = express();
-const port = 3000;
-
-// app.use(cors({
-//   origin: "http://localhost:5173/",
-//   methods: ["GET", "POST", "PUT", "DELETE"],
-//   allowedHeaders: ["Content-Type"]
-// }));
-
+const port = process.env.PORT || 3000;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: ["http://localhost:5173", "https://coffee-craze.netlify.app"],
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type"]
+}));
 app.use(express.json());
 
-
+// MongoDB URI
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.svgbh.mongodb.net/?appName=Cluster0`;
 
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -32,10 +28,20 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
     const coffeeCollection = client.db("coffeeDB").collection("coffees");
 
+
+    // Post Delete 
+    app.delete("/coffees/:id", async (req, res) => {
+      const id = req.params.id;
+      const result = await coffeeCollection.deleteOne({ _id: new ObjectId(id) });
+      res.send(result);
+    });
+
+
+
+    // POST route
     app.post("/coffees", async (req, res) => {
       const newCoffee = req.body;
       try {
@@ -47,38 +53,32 @@ async function run() {
       }
     });
 
-
+    // GET route
     app.get("/coffees", async (req, res) => {
       try {
         const coffees = await coffeeCollection.find().toArray();
-        res.send(coffees)
-      }
-      catch (error){
+        res.send(coffees);
+      } catch (error) {
         res.status(500).send({ message: "Failed to fetch coffees" });
       }
-    })
+    });
 
-
-    // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
-  } finally {
-    // Ensures that the client will close when you finish/error
-    // await client.close();
+    console.log("Connected to MongoDB!");
+  } catch (err) {
+    console.error("MongoDB connection error:", err);
   }
 }
 run().catch(console.dir);
-
-
-
 
 // Root route
 app.get("/", (req, res) => {
   res.send("Coffee server is running...");
 });
 
+// Vercel‑friendly export (❌ app.listen নয়)
+module.exports = app;
 
-// Server start
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
