@@ -106,7 +106,6 @@ app.get("/", (req, res) => {
   res.send("Coffee server is running...");
 });
 
-// Vercel‑friendly export (❌ app.listen নয়)
 module.exports = app;
 
 // app.listen(port, () => {
