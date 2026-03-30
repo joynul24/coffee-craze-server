@@ -5,7 +5,7 @@ const { MongoClient, ServerApiVersion } = require('mongodb');
 const { ObjectId } = require("mongodb");
 
 const app = express();
-const port = process.env.PORT || 3000;
+// const port = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors({
@@ -53,6 +53,23 @@ async function run() {
     });
 
 
+    app.put("/coffees/:id", async (req, res) => {
+      const id = req.params.id;
+      const updatedCoffee = req.body;
+
+      try {
+        const result = await coffeeCollection.updateOne(
+          { _id: new ObjectId(id) },
+          { $set: updatedCoffee }
+        );
+        res.send(result);
+      } catch (error) {
+        console.error(error);
+        res.status(500).send({ error: "Failed to update coffee" });
+      }
+    });
+
+
 
     // POST route
     app.post("/coffees", async (req, res) => {
@@ -92,6 +109,6 @@ app.get("/", (req, res) => {
 // Vercel‑friendly export (❌ app.listen নয়)
 module.exports = app;
 
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-});
+// app.listen(port, () => {
+//   console.log(`Server running on port ${port}`);
+// });
